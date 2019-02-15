@@ -306,13 +306,13 @@ class Application:
             if isinstance(item, storage.BaseCollection):
                 path = storage.sanitize_path("/%s/" % item.path)
                 can_read = self.Rights.authorized(user, path, "r")
-                can_write = self.Rights.authorized(user, path, "w")
+                can_write = False
                 target = "collection %r" % item.path
             else:
                 path = storage.sanitize_path("/%s/%s" % (item.collection.path,
                                                          item.href))
                 can_read = self.Rights.authorized_item(user, path, "r")
-                can_write = self.Rights.authorized_item(user, path, "w")
+                can_write = False
                 target = "item %r from %r" % (item.href, item.collection.path)
             text_status = []
             if can_read:
@@ -471,24 +471,24 @@ class Application:
                 self.logger.info("Successful login: %r", user)
 
         # Create principal collection
-        if user and is_authenticated:
-            principal_path = "/%s/" % user
-            if self.Rights.authorized(user, principal_path, "w"):
-                with self.Collection.acquire_lock("r", user):
-                    principal = next(
-                        self.Collection.discover(principal_path, depth="1"),
-                        None)
-                if not principal:
-                    with self.Collection.acquire_lock("w", user):
-                        try:
-                            self.Collection.create_collection(principal_path)
-                        except ValueError as e:
-                            self.logger.warning("Failed to create principal "
-                                                "collection %r: %s", user, e)
-                            is_authenticated = False
-            else:
-                self.logger.warning("Access to principal path %r denied by "
-                                    "rights backend", principal_path)
+        # if user and is_authenticated:
+        #     principal_path = "/%s/" % user
+        #     if self.Rights.authorized(user, principal_path, "w"):
+        #         with self.Collection.acquire_lock("r", user):
+        #             principal = next(
+        #                 self.Collection.discover(principal_path, depth="1"),
+        #                 None)
+        #         if not principal:
+        #             with self.Collection.acquire_lock("w", user):
+        #                 try:
+        #                     self.Collection.create_collection(principal_path)
+        #                 except ValueError as e:
+        #                     self.logger.warning("Failed to create principal "
+        #                                         "collection %r: %s", user, e)
+        #                     is_authenticated = False
+        #     else:
+        #         self.logger.warning("Access to principal path %r denied by "
+        #                             "rights backend", principal_path)
 
         # Verify content length
         content_length = int(environ.get("CONTENT_LENGTH") or 0)
@@ -583,6 +583,7 @@ class Application:
         return status, headers, content
 
     def do_DELETE(self, environ, base_prefix, path, user):
+        return NOT_ALLOWED
         """Manage DELETE request."""
         if not self._access(user, path, "w"):
             return NOT_ALLOWED
@@ -647,6 +648,7 @@ class Application:
         return status, headers, None
 
     def do_MKCALENDAR(self, environ, base_prefix, path, user):
+        return NOT_ALLOWED
         """Manage MKCALENDAR request."""
         if not self.Rights.authorized(user, path, "w"):
             return NOT_ALLOWED
@@ -686,6 +688,7 @@ class Application:
             return client.CREATED, {}, None
 
     def do_MKCOL(self, environ, base_prefix, path, user):
+        return NOT_ALLOWED
         """Manage MKCOL request."""
         if not self.Rights.authorized(user, path, "w"):
             return NOT_ALLOWED
@@ -721,6 +724,7 @@ class Application:
             return client.CREATED, {}, None
 
     def do_MOVE(self, environ, base_prefix, path, user):
+        return NOT_ALLOWED
         """Manage MOVE request."""
         raw_dest = environ.get("HTTP_DESTINATION", "")
         to_url = urlparse(raw_dest)
@@ -816,6 +820,7 @@ class Application:
             return status, headers, self._write_xml_content(xml_answer)
 
     def do_PROPPATCH(self, environ, base_prefix, path, user):
+        return NOT_ALLOWED
         """Manage PROPPATCH request."""
         if not self.Rights.authorized(user, path, "w"):
             return NOT_ALLOWED
@@ -847,6 +852,7 @@ class Application:
                     self._write_xml_content(xml_answer))
 
     def do_PUT(self, environ, base_prefix, path, user):
+        return NOT_ALLOWED
         """Manage PUT request."""
         if not self._access(user, path, "w"):
             return NOT_ALLOWED
