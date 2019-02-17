@@ -306,13 +306,13 @@ class Application:
             if isinstance(item, storage.BaseCollection):
                 path = storage.sanitize_path("/%s/" % item.path)
                 can_read = self.Rights.authorized(user, path, "r")
-                can_write = self.Rights.authorized(user, path, "w")
+                can_write = False
                 target = "collection %r" % item.path
             else:
                 path = storage.sanitize_path("/%s/%s" % (item.collection.path,
                                                          item.href))
                 can_read = self.Rights.authorized_item(user, path, "r")
-                can_write = self.Rights.authorized_item(user, path, "w")
+                can_write = False
                 target = "item %r from %r" % (item.href, item.collection.path)
             text_status = []
             if can_read:
